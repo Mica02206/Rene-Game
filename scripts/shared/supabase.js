@@ -16,7 +16,10 @@ export function friendlyError(error) {
   if (/invalid login credentials/i.test(message)) return 'Email or password is incorrect.';
   if (/user already registered/i.test(message)) return 'That email already has an account. Try logging in.';
   if (/row-level security|permission denied/i.test(message)) {
-    return 'Database access was denied. Check the Supabase database setup and policies.';
+    return 'Supabase denied this database operation. Run supabase/database/fix-settings.sql in the SQL Editor, then retry.';
+  }
+  if (/reset_game_progress|set_player_name/i.test(message) && /function|schema cache|not found/i.test(message)) {
+    return 'The settings functions are not installed yet. Run supabase/database/fix-settings.sql in the SQL Editor.';
   }
   return message;
 }

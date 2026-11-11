@@ -48,7 +48,7 @@ create trigger on_auth_user_created_game_profile
 create function public.record_game_run(run_score integer)
 returns void
 language plpgsql
-security invoker
+security definer
 set search_path = ''
 as $$
 declare
@@ -76,7 +76,62 @@ begin
 end;
 $$;
 
+revoke all on function public.record_game_run(integer) from public, anon;
 grant execute on function public.record_game_run(integer) to authenticated;
+
+-- Reset progress through the authenticated user's own profile.
+create function public.reset_game_progress()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  player_id uuid := auth.uid();
+begin
+  if player_id is null then
+    raise exception 'Authentication required';
+  end if;
+  update public.game_profiles
+  set high_score = 0, total_points = 0, updated_at = now()
+  where user_id = player_id;
+  if not found then
+    raise exception 'Player profile not found';
+  end if;
+end;
+$$;
+
+revoke all on function public.reset_game_progress() from public, anon;
+grant execute on function public.reset_game_progress() to authenticated;
+
+-- Let an authenticated player change only their own public leaderboard name.
+create function public.set_player_name(new_name text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  player_id uuid := auth.uid();
+  clean_name text := btrim(coalesce(new_name, ''));
+begin
+  if player_id is null then
+    raise exception 'Authentication required';
+  end if;
+  if char_length(clean_name) < 2 or char_length(clean_name) > 20 then
+    raise exception 'Name must be between 2 and 20 characters';
+  end if;
+  update public.game_profiles
+  set display_name = clean_name, updated_at = now()
+  where user_id = player_id;
+  if not found then
+    raise exception 'Player profile not found';
+  end if;
+end;
+$$;
+
+revoke all on function public.set_player_name(text) from public, anon;
+grant execute on function public.set_player_name(text) to authenticated;
 
 -- Add this table to Realtime so profile and leaderboard subscriptions receive updates.
 alter publication supabase_realtime add table public.game_profiles;

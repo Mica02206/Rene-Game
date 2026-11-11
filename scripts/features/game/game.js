@@ -7,8 +7,15 @@ export function initGame({ onSaveRun }) {
   const basketball = new Image();
   basketball.src = './assets/basketball.png';
   const gameOverSound = new Audio('./assets/mama-rene-baterbonia.mp3');
+  const streakSound = new Audio('./assets/bituin-ng-mindanao.mp3');
+  const gameBgm = new Audio('./assets/hetyati-16-343477.mp3');
   gameOverSound.preload = 'auto';
   gameOverSound.volume = 0.85;
+  streakSound.preload = 'auto';
+  streakSound.volume = 0.75;
+  gameBgm.preload = 'auto';
+  gameBgm.loop = true;
+  gameBgm.volume = 0.28;
   let width = 0;
   let height = 0;
   let dpr = 1;
@@ -91,8 +98,13 @@ export function initGame({ onSaveRun }) {
   }
 
   function startGame() {
+    gameBgm.pause();
+    gameBgm.currentTime = 0;
+    gameBgm.play().catch(() => {});
     gameOverSound.pause();
     gameOverSound.currentTime = 0;
+    streakSound.pause();
+    streakSound.currentTime = 0;
     $('gameOverModal').classList.add('hidden');
     $('gameScreen').classList.remove('hidden');
     resizeCanvas();
@@ -159,6 +171,10 @@ export function initGame({ onSaveRun }) {
     game.over = true;
     game.running = false;
     cancelAnimationFrame(raf);
+    gameBgm.pause();
+    gameBgm.currentTime = 0;
+    streakSound.pause();
+    streakSound.currentTime = 0;
     gameOverSound.pause();
     gameOverSound.currentTime = 0;
     gameOverSound.play().catch(() => {});
@@ -205,6 +221,8 @@ export function initGame({ onSaveRun }) {
           hoop.missed = true;
           g.streak = 0;
           g.multiplier = 1;
+          streakSound.pause();
+          streakSound.currentTime = 0;
           g.shieldFlash = 0.9;
           announce('SHIELD SAVE!', '#65e5ff');
           updateBadges();
@@ -256,8 +274,20 @@ export function initGame({ onSaveRun }) {
       if (!hoop.scored && crossedDown && inLane && (throughOpening || hoop.bounced)) {
         hoop.scored = true;
         const swish = throughOpening && p.x > hoop.x + p.r + 8 && p.x < hoop.x + hoop.w - p.r - 8;
-        g.streak += 1;
-        g.multiplier = g.streak === 1 ? 1 : Math.min(2 ** (g.streak - 1), 64);
+        if (swish) {
+          g.streak += 1;
+          g.multiplier = g.streak === 1 ? 1 : Math.min(2 ** (g.streak - 1), 64);
+          if (g.streak >= 2) {
+            streakSound.pause();
+            streakSound.currentTime = 0;
+            streakSound.play().catch(() => {});
+          }
+        } else {
+          g.streak = 0;
+          g.multiplier = 1;
+          streakSound.pause();
+          streakSound.currentTime = 0;
+        }
         const points = (swish ? 2 : 1) * g.multiplier;
         g.score += points;
         hoop.sparkTimer = 1.15;
@@ -463,6 +493,8 @@ export function initGame({ onSaveRun }) {
   $('playButton').addEventListener('click', startGame);
   $('retryButton').addEventListener('click', startGame);
   $('quitButton').addEventListener('click', () => {
+    gameBgm.pause();
+    gameBgm.currentTime = 0;
     if (game?.running) {
       game.running = false;
       game.over = true;
