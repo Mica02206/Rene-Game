@@ -321,6 +321,11 @@ export function initGame({ onSaveRun }) {
     if (!game) return;
     const g = game;
     const p = g.player;
+    const cameraZoom = 1.1;
+    ctx.save();
+    ctx.translate(width / 2, height / 2);
+    ctx.scale(cameraZoom, cameraZoom);
+    ctx.translate(-width / 2, -height / 2);
     const sky = ctx.createLinearGradient(0, 0, 0, height);
     sky.addColorStop(0, '#8ed6e7');
     sky.addColorStop(0.62, '#c8eddf');
@@ -491,6 +496,7 @@ export function initGame({ onSaveRun }) {
       ctx.fillStyle = `rgba(255,255,255,${g.flash * 1.7})`;
       ctx.fillRect(0, 0, width, height);
     }
+    ctx.restore();
   }
 
   function frame(now) {
