@@ -346,6 +346,7 @@ export function initGame({ onSaveRun }) {
       const centerY = hoop.y;
       const radiusX = hoop.w / 2;
       const radiusY = 18;
+      const streakColor = g.streak > 1 ? ballColors[(g.streak - 2) % ballColors.length] : null;
       const oval = () => {
         ctx.beginPath();
         ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
@@ -353,8 +354,8 @@ export function initGame({ onSaveRun }) {
 
       // Dark edge and glossy red surface create the floating donut-shaped rim.
       ctx.lineCap = 'round';
-      ctx.shadowColor = hoop.scored ? '#ffe65e' : '#ff284e';
-      ctx.shadowBlur = 7 + Math.sin(g.elapsed * 7 + centerY) * 3;
+      ctx.shadowColor = streakColor || (hoop.scored ? '#ffe65e' : '#ff284e');
+      ctx.shadowBlur = 7 + Math.sin(g.elapsed * 7 + centerY) * 3 + (streakColor ? 16 : 0);
       oval();
       ctx.strokeStyle = '#090b12';
       ctx.lineWidth = 17;
@@ -390,13 +391,13 @@ export function initGame({ onSaveRun }) {
         drawShield(shieldX, shieldY, 14);
         drawStar(shieldX + 16, shieldY - 9, 3.5, '#d4f7ff', g.elapsed);
       }
-      if (hoop.sparkTimer > 0) {
-        ctx.globalAlpha = clamp(hoop.sparkTimer / 1.15, 0, 1);
+      if (hoop.sparkTimer > 0 || streakColor) {
+        ctx.globalAlpha = streakColor ? 0.88 : clamp(hoop.sparkTimer / 1.15, 0, 1);
         for (let i = 0; i < 5; i += 1) {
-          const angle = g.elapsed * 3.2 + i * Math.PI * 2 / 5;
+          const angle = g.elapsed * (streakColor ? 4.5 : 3.2) + i * Math.PI * 2 / 5;
           const sx = centerX + Math.cos(angle) * (radiusX * 0.72);
           const sy = centerY - 20 + Math.sin(angle) * 17;
-          drawStar(sx, sy, i % 2 ? 5 : 7, '#fff05d', angle);
+          drawStar(sx, sy, i % 2 ? 5 : 7, streakColor || '#fff05d', angle);
         }
         ctx.globalAlpha = 1;
       }
@@ -436,6 +437,19 @@ export function initGame({ onSaveRun }) {
       } else if (g.streak > 1) {
         ctx.shadowColor = ballColors[tintIndex];
         ctx.shadowBlur = 14;
+      }
+      if (g.streak > 1) {
+        const pulse = 1 + Math.sin(g.elapsed * 11) * 0.08;
+        ctx.save();
+        ctx.globalAlpha = 0.82;
+        ctx.shadowColor = ballColors[tintIndex];
+        ctx.shadowBlur = 18;
+        ctx.strokeStyle = ballColors[tintIndex];
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, (p.r + 7) * pulse, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
       }
       if (g.shields > 0) drawShield(p.r * 0.72, -p.r * 0.72, 9);
       if (basketball.complete && basketball.naturalWidth) {
