@@ -13,6 +13,7 @@ export function initGame({ onSaveRun }) {
   gameOverSound.volume = 0.85;
   streakSound.preload = 'auto';
   streakSound.volume = 0.75;
+  streakSound.loop = true;
   gameBgm.preload = 'auto';
   gameBgm.loop = true;
   gameBgm.volume = 0.28;
@@ -25,6 +26,13 @@ export function initGame({ onSaveRun }) {
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const ballColors = ['#f58c43', '#ffd436', '#58e2ff', '#ad7aff', '#ff5fb8'];
+
+  function setPauseButton(isPaused) {
+    const button = $('pauseButton');
+    button.textContent = isPaused ? '▶' : 'Ⅱ';
+    button.setAttribute('aria-label', isPaused ? 'Resume game' : 'Pause game');
+    button.title = isPaused ? 'Resume game' : 'Pause game';
+  }
 
   function updateBadges() {
     $('streakBadge').classList.toggle('hidden', game.streak < 2);
@@ -116,6 +124,7 @@ export function initGame({ onSaveRun }) {
       hoops: [], spawnIn: 0.55, particles: [], flash: 0
     };
     $('liveScore').textContent = '0';
+    setPauseButton(false);
     updateBadges();
     lastFrame = performance.now();
     cancelAnimationFrame(raf);
@@ -277,9 +286,7 @@ export function initGame({ onSaveRun }) {
         if (swish) {
           g.streak += 1;
           g.multiplier = g.streak === 1 ? 1 : Math.min(2 ** (g.streak - 1), 64);
-          if (g.streak >= 2) {
-            streakSound.pause();
-            streakSound.currentTime = 0;
+          if (g.streak >= 2 && streakSound.paused) {
             streakSound.play().catch(() => {});
           }
         } else {
@@ -487,19 +494,44 @@ export function initGame({ onSaveRun }) {
     flap();
   }
 
+  function togglePause() {
+    if (!game || game.over) return;
+    if (game.running) {
+      game.running = false;
+      game.paused = true;
+      cancelAnimationFrame(raf);
+      gameBgm.pause();
+      streakSound.pause();
+      setPauseButton(true);
+      return;
+    }
+    if (!game.paused) return;
+    game.paused = false;
+    game.running = true;
+    lastFrame = performance.now();
+    setPauseButton(false);
+    gameBgm.play().catch(() => {});
+    if (game.streak >= 2) streakSound.play().catch(() => {});
+    raf = requestAnimationFrame(frame);
+  }
+
   window.addEventListener('resize', resizeCanvas);
   canvas.addEventListener('pointerdown', flapFromInput);
   window.addEventListener('keydown', flapFromInput);
   $('playButton').addEventListener('click', startGame);
   $('retryButton').addEventListener('click', startGame);
+  $('pauseButton').addEventListener('click', togglePause);
   $('quitButton').addEventListener('click', () => {
     gameBgm.pause();
     gameBgm.currentTime = 0;
+    streakSound.pause();
+    streakSound.currentTime = 0;
     if (game?.running) {
       game.running = false;
       game.over = true;
       cancelAnimationFrame(raf);
     }
+    setPauseButton(false);
     $('gameScreen').classList.add('hidden');
   });
   $('menuButton').addEventListener('click', () => $('gameScreen').classList.add('hidden'));
