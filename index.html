@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101829">
+  <title>Rene Game — Sky Dunk</title>
+  <link rel="stylesheet" href="./styles/main.css">
+</head>
+<body>
+  <!-- Authentication feature -->
+  <section id="authScreen" class="card" aria-label="Account access">
+    <div class="brand"><div class="brand-icon">🏀</div><div><h1>Rene Game</h1><p>Take flight. Find your swish.</p></div></div>
+    <div class="eyebrow">Your court is waiting</div>
+    <div class="auth-tabs"><button id="loginTab" class="active" type="button">Log in</button><button id="signupTab" type="button">Sign up</button></div>
+    <form id="authForm">
+      <label class="field"><span>Email</span><input id="emailInput" type="email" autocomplete="email" placeholder="you@example.com" required maxlength="254"></label>
+      <label class="field"><span>Password</span><input id="passwordInput" type="password" autocomplete="current-password" placeholder="At least 6 characters" required minlength="6"></label>
+      <button id="authSubmit" class="auth-submit" type="submit">Log in</button>
+      <p id="authError" class="error" role="alert"></p>
+    </form>
+    <p class="footnote">Create an account or log in to save your records and play.</p>
+  </section>
+
+  <!-- Main menu, profile, leaderboard, and settings features -->
+  <main id="app" class="hidden">
+    <header class="topbar">
+      <div class="brand"><div class="brand-icon">🏀</div><div><h1>Rene Game</h1><p>Take flight. Find your swish.</p></div></div>
+      <div class="user-actions"><span id="userEmail" class="user-email"></span><button id="signOutButton" class="secondary" type="button">Log out</button></div>
+    </header>
+    <section class="app-card">
+      <div id="homeView">
+        <div class="eyebrow">Ready when you are</div><h2 class="view-title">Your court</h2><p class="muted">A little lift goes a long way.</p>
+        <div class="stats"><div class="stat"><div class="stat-label">PERSONAL BEST</div><div class="stat-value" id="highScoreValue">—</div></div><div class="stat"><div class="stat-label">CAREER POINTS</div><div class="stat-value" id="totalPointsValue">—</div></div></div>
+        <div class="play-row"><button id="playButton" type="button">▶ &nbsp; Play a round</button><button id="leaderboardButton" class="secondary" type="button">Global leaderboard</button><button id="settingsButton" class="secondary" type="button">Settings</button></div>
+        <p class="instructions">Tap, click, or press <b>Space</b> to flap as hoops scroll in from the right. Score by dropping through from above. Consecutive shots build 2×, 4× and bigger streaks. Collect a blue shield to survive one missed hoop.</p>
+      </div>
+      <div id="leaderboardView" class="hidden"><div class="eyebrow">The top ten</div><h2 class="view-title">Global leaderboard</h2><p class="muted">Ranked by personal best.</p><div class="table-wrap"><table><thead><tr><th>RANK</th><th>PLAYER</th><th>BEST</th></tr></thead><tbody id="leaderboardRows"><tr><td colspan="3" class="empty">Loading scores…</td></tr></tbody></table></div><p id="leaderboardError" class="error"></p><button class="secondary backHome" type="button">Back to court</button></div>
+      <div id="settingsView" class="hidden"><div class="eyebrow">Account</div><h2 class="view-title">Settings</h2><p class="muted">Manage your Rene Game data.</p><div class="settings-actions"><button id="resetButton" class="secondary" type="button">Reset my progress<small>Set high score and career points back to zero.</small></button><button id="deleteAccountButton" class="danger" type="button">Delete account<small>Permanently remove your profile and game data.</small></button></div><p id="settingsMessage" class="error" role="status"></p><p class="settings-note">Account deletion runs securely through a Supabase Edge Function.</p><button class="secondary backHome" type="button">Back to court</button></div>
+    </section>
+  </main>
+
+  <!-- Game feature -->
+  <section id="gameScreen" class="hidden" aria-label="Basketball game">
+    <canvas id="gameCanvas" aria-label="Tap or press space to bounce the ball through hoops"></canvas>
+    <div class="game-hud"><div class="hud-left"><div id="liveScore" class="hud-score">0</div><div class="game-badges"><span id="streakBadge" class="game-badge hidden">STREAK <strong id="streakValue">×2</strong></span><span id="shieldBadge" class="game-badge shield-badge hidden">SHIELD <strong id="shieldValue">×1</strong></span></div></div><div class="hud-actions"><button id="quitButton" class="secondary" type="button">Exit</button></div></div>
+    <div class="game-hint">Tap · click · or press Space to flap</div>
+    <div id="gameOverModal" class="modal-shade hidden"><div class="modal"><div class="eyebrow">Run complete</div><h2>Game over</h2><p id="runLabel">Your run score</p><div id="runScore" class="score-result">0</div><p id="saveStatus" class="muted">Saving score…</p><div class="modal-actions"><button id="retryButton" type="button">Play again</button><button id="menuButton" class="secondary" type="button">Back to court</button></div></div></div>
+  </section>
+
+  <script type="module" src="./scripts/app.js"></script>
+</body>
+</html>
